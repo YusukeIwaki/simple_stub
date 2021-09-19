@@ -67,11 +67,13 @@ module SimpleStub
     private
 
     def apply_stub
-      impl_module.define_method(@method_name, &@impl)
+      # define_method is private on Ruby <= 2.4
+      impl_module.send(:define_method, @method_name, &@impl)
     end
 
     def reset_stub
-      impl_module.remove_method(@method_name)
+      # remove_method is private on Ruby <= 2.4
+      impl_module.send(:remove_method, @method_name)
     end
 
     def impl_module

@@ -6,7 +6,6 @@ require 'simple_stub/for_instance_method'
 require 'simple_stub/not_applied_error'
 
 module SimpleStub
-
   # Stubs instance method.
   # This affect to any instance of the target class.
   #

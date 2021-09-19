@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'digest'
 
 module SimpleStub
@@ -27,12 +29,8 @@ module SimpleStub
   #
   class ForInstanceMethod
     def initialize(klass, method_name, &impl)
-      unless klass.is_a?(Class)
-        raise ArgumentError.new("klass must be a Class. #{klass.class} specified.")
-      end
-      unless method_name.is_a?(Symbol)
-        raise ArgumentError.new("method name must be a Symbol.")
-      end
+      raise ArgumentError, "klass must be a Class. #{klass.class} specified." unless klass.is_a?(Class)
+      raise ArgumentError, 'method name must be a Symbol.' unless method_name.is_a?(Symbol)
 
       @klass = klass
       @method_name = method_name
@@ -42,34 +40,26 @@ module SimpleStub
     # Safer version of #apply!
     # Nothing happens even if already stubbed.
     def apply
-      if stub_defined?
-        return
-      end
+      return if stub_defined?
 
       apply_stub
     end
 
     # Apply the stub. If the stub is already applied, raises error.
     def apply!
-      if stub_defined?
-        raise AlreadyAppliedError.new("The stub for #{@klass}##{@method_name} is already applied")
-      end
+      raise AlreadyAppliedError, "The stub for #{@klass}##{@method_name} is already applied" if stub_defined?
 
       apply_stub
     end
 
     def reset
-      unless stub_defined?
-        return
-      end
+      return unless stub_defined?
 
       reset_stub
     end
 
     def reset!
-      unless stub_defined?
-        raise NotAppliedError.new("The stub for #{@klass}##{@method_name} is already applied")
-      end
+      raise NotAppliedError, "The stub for #{@klass}##{@method_name} is already applied" unless stub_defined?
 
       reset_stub
     end
@@ -89,11 +79,7 @@ module SimpleStub
     end
 
     def impl_module_or_nil
-      if ForInstanceMethod.const_defined?(impl_module_name)
-        ForInstanceMethod.const_get(impl_module_name)
-      else
-        nil
-      end
+      ForInstanceMethod.const_get(impl_module_name) if ForInstanceMethod.const_defined?(impl_module_name)
     end
 
     def create_and_apply_impl_module
@@ -106,7 +92,7 @@ module SimpleStub
     end
 
     def klass_digest
-      @klass_digest ||= Digest::SHA256.hexdigest("#{@klass}")
+      @klass_digest ||= Digest::SHA256.hexdigest(@klass.to_s)
     end
 
     def impl_module_name

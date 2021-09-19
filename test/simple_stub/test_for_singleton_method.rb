@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'simple_stub'
 
@@ -64,41 +66,41 @@ class TestForSingletonMethodAndInstanceMethod < Minitest::Test
 end
 
 class TestWithTimeNow < Minitest::Test
-  class MyTime < Time ; end
+  class MyTime < Time; end
 
   def stub_time_now
-    SimpleStub.for_singleton_method(Time, :now) { 111111 }
+    SimpleStub.for_singleton_method(Time, :now) { 111_111 }
   end
 
   def stub_mytime_now
-    SimpleStub.for_singleton_method(MyTime, :now) { 222222 }
+    SimpleStub.for_singleton_method(MyTime, :now) { 222_222 }
   end
 
   def stub_time_hoge
-    SimpleStub.for_singleton_method(Time, :hoge) { 333333 }
+    SimpleStub.for_singleton_method(Time, :hoge) { 333_333 }
   end
 
   def test_stub_defined_class
     original_method = Time.method(:now)
     stub_time_now.apply!
-    assert Time.now == 111111
-    assert MyTime.now == 111111
+    assert Time.now == 111_111
+    assert MyTime.now == 111_111
     stub_time_now.reset!
-    assert Time.now != 111111
+    assert Time.now != 111_111
     assert_equal original_method, Time.method(:now)
   end
 
   def test_stub_defined_in_super_class
     stub_mytime_now.apply!
-    assert Time.now != 111111
-    assert MyTime.now == 222222
+    assert Time.now != 111_111
+    assert MyTime.now == 222_222
     stub_mytime_now.reset!
-    assert MyTime.now != 222222
+    assert MyTime.now != 222_222
   end
 
   def test_stub_undefined_class
     stub_time_hoge.apply!
-    assert Time.hoge == 333333
+    assert Time.hoge == 333_333
     stub_time_hoge.reset!
     assert !Time.respond_to?(:hoge)
   end
@@ -136,19 +138,19 @@ class TestWithDogInstance < Minitest::Test
   end
 
   def stub_hello
-    SimpleStub.for_singleton_method(@dog, :hello) { 111111 }
+    SimpleStub.for_singleton_method(@dog, :hello) { 111_111 }
   end
 
   def stub_name
-    SimpleStub.for_singleton_method(@dog, :name) { 222222 }
+    SimpleStub.for_singleton_method(@dog, :name) { 222_222 }
   end
 
   def stub_greet
-    SimpleStub.for_singleton_method(@dog, :greet) { 333333 }
+    SimpleStub.for_singleton_method(@dog, :greet) { 333_333 }
   end
 
   def stub_hoge
-    SimpleStub.for_singleton_method(@dog, :hoge) { 444444 }
+    SimpleStub.for_singleton_method(@dog, :hoge) { 444_444 }
   end
 
   def teardown
@@ -160,8 +162,8 @@ class TestWithDogInstance < Minitest::Test
 
   def test_stub_defined_method
     stub_hello.apply!
-    assert @dog.hello == 111111
-    assert @dog.greet == 111111
+    assert @dog.hello == 111_111
+    assert @dog.greet == 111_111
     assert Dog.new.hello == 'dog'
     stub_hello.reset!
     assert @dog.hello == 'dog'
@@ -170,7 +172,7 @@ class TestWithDogInstance < Minitest::Test
   def test_stub_defined_method2
     stub_greet.apply!
     assert @dog.hello == 'dog'
-    assert @dog.greet == 333333
+    assert @dog.greet == 333_333
     assert Dog.new.greet == 'dog'
     stub_greet.reset!
     assert @dog.greet == 'dog'
@@ -178,7 +180,7 @@ class TestWithDogInstance < Minitest::Test
 
   def test_stub_defined_method_in_superclass
     stub_name.apply!
-    assert @dog.name == 222222
+    assert @dog.name == 222_222
     assert Dog.new.name == '--name--'
     stub_name.reset!
     assert @dog.name == '--name--'

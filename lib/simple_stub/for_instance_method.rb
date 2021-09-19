@@ -27,6 +27,13 @@ module SimpleStub
   #
   class ForInstanceMethod
     def initialize(klass, method_name, &impl)
+      unless klass.is_a?(Class)
+        raise ArgumentError.new("klass must be a Class. #{klass.class} specified.")
+      end
+      unless method_name.is_a?(Symbol)
+        raise ArgumentError.new("method name must be a Symbol.")
+      end
+
       @klass = klass
       @method_name = method_name
       @impl = impl

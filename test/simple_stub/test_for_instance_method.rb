@@ -67,3 +67,116 @@ class TestDuplicatedStubInstanceMethod < Minitest::Test
     end
   end
 end
+
+class TestForInstanceMethodOfSubclassOrModule < Minitest::Test
+  module Hello2
+    def hello2
+      'hello-2'
+    end
+  end
+
+  class Hello
+    include Hello2
+
+    def hello1
+      'hello-1'
+    end
+  end
+
+  class SubHello < Hello
+    def hello1
+      "SUB - #{super}"
+    end
+
+    def hello3
+      "hello - #{hello2}"
+    end
+  end
+
+  def stub_hello_hello1
+    SimpleStub.for_instance_method(Hello, :hello1) do
+      ">> #{super()} <<"
+    end
+  end
+
+  def stub_hello_hello2
+    SimpleStub.for_instance_method(Hello, :hello2) do
+      "->> #{super()} <<-"
+    end
+  end
+
+  def stub_subhello_hello2
+    SimpleStub.for_instance_method(SubHello, :hello2) do
+      "->> #{super()} <<-"
+    end
+  end
+
+  def stub_subhello_hello1
+    SimpleStub.for_instance_method(SubHello, :hello1) do
+      ">>> #{super()} <<<"
+    end
+  end
+
+  def teardown
+    stub_hello_hello1.reset
+    stub_hello_hello2.reset
+    stub_subhello_hello2.reset
+    stub_subhello_hello1.reset
+  end
+
+  def test_stubbing_instance_method
+    hello = Hello.new
+    stub_hello_hello1.apply!
+    assert_equal '>> hello-1 <<', hello.hello1
+    assert_equal '>> hello-1 <<', Hello.new.hello1
+    assert_equal 'SUB - >> hello-1 <<', SubHello.new.hello1
+    stub_hello_hello1.reset!
+    assert_equal 'hello-1', hello.hello1
+    assert_equal 'hello-1', Hello.new.hello1
+    assert_equal 'SUB - hello-1', SubHello.new.hello1
+  end
+
+  def test_stubbing_instance_method_defined_in_module
+    hello = Hello.new
+    stub_hello_hello2.apply!
+    assert_equal '->> hello-2 <<-', hello.hello2
+    assert_equal '->> hello-2 <<-', Hello.new.hello2
+    assert_equal '->> hello-2 <<-', SubHello.new.hello2
+    assert_equal 'hello - ->> hello-2 <<-', SubHello.new.hello3
+    stub_hello_hello2.reset!
+    assert_equal 'hello-2', hello.hello2
+    assert_equal 'hello-2', Hello.new.hello2
+    assert_equal 'hello-2', SubHello.new.hello2
+    assert_equal 'hello - hello-2', SubHello.new.hello3
+  end
+
+  def test_stubbing_instance_method_defined_in_module_of_superclass
+    subhello = SubHello.new
+    stub_subhello_hello2.apply!
+    assert_equal '->> hello-2 <<-', subhello.hello2
+    assert_equal 'hello-2', Hello.new.hello2
+    assert_equal '->> hello-2 <<-', SubHello.new.hello2
+    assert_equal 'hello - ->> hello-2 <<-', SubHello.new.hello3
+    stub_subhello_hello2.reset!
+    assert_equal 'hello-2', subhello.hello2
+    assert_equal 'hello-2', Hello.new.hello2
+    assert_equal 'hello-2', SubHello.new.hello2
+    assert_equal 'hello - hello-2', SubHello.new.hello3
+  end
+
+  def test_stubbing_me_and_super
+    stub_subhello_hello1.apply!
+    assert_equal '>>> SUB - hello-1 <<<', SubHello.new.hello1
+    assert_equal 'hello-1', Hello.new.hello1
+    stub_hello_hello1.apply!
+    assert_equal '>>> SUB - >> hello-1 << <<<', SubHello.new.hello1
+    assert_equal '>> hello-1 <<', Hello.new.hello1
+  end
+
+  def test_apply_twice
+    stub_hello_hello1.apply!
+    stub_hello_hello1.apply
+    stub_hello_hello1.apply
+    assert_equal '>> hello-1 <<', Hello.new.hello1
+  end
+end

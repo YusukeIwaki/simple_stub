@@ -1,3 +1,5 @@
+[![Gem Version](https://badge.fury.io/rb/simple_stub.svg)](https://badge.fury.io/rb/simple_stub)
+
 # SimpleStub
 
 Defining simple scoped stub with apply/reset interface

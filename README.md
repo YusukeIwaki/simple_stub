@@ -1,38 +1,73 @@
 # SimpleStub
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/simple_stub`. To experiment with that code, run `bin/console` for an interactive prompt.
+Defining simple scoped stub with apply/reset interface
 
-TODO: Delete this and the text above, and describe your gem
+```ruby
+fixed_time = Time.now
+stub_time_now = SimpleStub.for_singleton_method(Time, :now) { fixed_time }
+
+stub_time_now.apply!
+# Time.now is fixed here
+stub_time_now.reset!
+```
 
 ## Installation
-
-Add this line to your application's Gemfile:
 
 ```ruby
 gem 'simple_stub'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install simple_stub
+then `bundle install`.
 
 ## Usage
 
-TODO: Write usage instructions here
+For stubbing a singleton method (or class method), use `SimpleStub.for_singleton_method`.
 
-## Development
+```ruby
+fixed_time = Time.now
+stub_time_now = SimpleStub.for_singleton_method(Time, :now) { fixed_time }
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+stub_time_now.apply!
+# Time.now is fixed here
+stub_time_now.reset!
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+For stubbing an instance method (which affects to all of the instances), use `SimpleStub.for_instance_method`.
 
-## Contributing
+```ruby
+class Dog
+  def hello
+    'Hello!'
+  end
+end
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/simple_stub. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+stub_dog_hello = SimpleStub.for_instance_method(Dog, :hello) { 'Bow' }
+dog1 = Dog.new
+stub_dog1_hello = SimpleStub.for_singleton_method(dog1, :hello) { ">> #{super()} <<" }
+
+stub_dog_hello.apply!
+Dog.new.hello # => 'Bow'
+dog1.hello # => 'Bow'
+stub_dog1_hello.apply!
+dog1.hello # => '>> Bow <<'
+```
+
+Since SimpleStub doesn't store any state in the instance, we can use it separatedly.
+
+```ruby
+class SomethingSetup
+  def call
+    # All username becomes John Doe
+    SimpleStub.for_instance_method(User, :name) { 'John Doe' }.apply
+  end
+end
+
+class SomethingTeardown
+  def call
+    SimpleStub.for_instance_method(User, :name).reset
+  end
+end
+```
 
 ## License
 

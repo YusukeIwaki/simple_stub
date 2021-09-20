@@ -182,3 +182,18 @@ class TestForInstanceMethodOfSubclassOrModule < Minitest::Test
     assert_equal '>> hello-1 <<', Hello.new.hello1
   end
 end
+
+class TestBlockRequired < Minitest::Test
+  class Dog
+    def hello
+      'Hello'
+    end
+  end
+
+  def test_block_required_for_apply
+    error = assert_raises do
+      SimpleStub::ForInstanceMethod.new(Dog, :hello).apply!
+    end
+    assert_match /Block must be given/, error.message
+  end
+end

@@ -5,11 +5,11 @@ require 'digest'
 module SimpleStub
   # Stub for instance methods, without any alias_method.
   # This class internally prepends a module into the target class.
-  # #apply adds a method into the prepended module.
-  # #reset removes a method from the prepended module.
+  # {#apply} adds a method into the prepended module.
+  # {#reset} removes a method from the prepended module.
   #
   # This class must be stateless for the usecase that
-  # the caller of #apply and the caller of #reset can be different.
+  # the caller of {#apply} and the caller of {#reset} can be different.
   # Both
   #
   #   @stub_user_name = SimpleStub::ForInstanceMethod(User, :name) { 'YusukeIwaki' }
@@ -28,6 +28,8 @@ module SimpleStub
   # should work.
   #
   class ForInstanceMethod
+    # @param klass [Class]
+    # @param method_name [Symbol]
     def initialize(klass, method_name, &impl)
       raise ArgumentError, "klass must be a Class. #{klass.class} specified." unless klass.is_a?(Class)
       raise ArgumentError, 'method name must be a Symbol.' unless method_name.is_a?(Symbol)
@@ -37,8 +39,8 @@ module SimpleStub
       @impl = impl
     end
 
-    # Safer version of #apply!
-    # Nothing happens even if already stubbed.
+    # Safer version of {#apply!}
+    # Nothing happens when the stub is already applied.
     def apply
       return if stub_defined?
 
@@ -52,12 +54,15 @@ module SimpleStub
       apply_stub
     end
 
+    # Safer version of {#reset!}.
+    # Nothing happens when the stub is already applied.
     def reset
       return unless stub_defined?
 
       reset_stub
     end
 
+    # Remove the stub and revert to the original implementation. If the stub is not applied or already reset, raise error.
     def reset!
       raise NotAppliedError, "The stub for #{@klass}##{@method_name} is already applied" unless stub_defined?
 

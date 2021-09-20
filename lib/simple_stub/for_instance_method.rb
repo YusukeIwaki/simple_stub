@@ -72,6 +72,8 @@ module SimpleStub
     private
 
     def apply_stub
+      raise ArgumentError, 'Block must be given for applying stub' unless @impl
+
       # define_method is private on Ruby <= 2.4
       impl_module.send(:define_method, @method_name, &@impl)
     end
